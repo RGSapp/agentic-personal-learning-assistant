@@ -1,0 +1,25 @@
+#LLM and Framework
+
+langgraph
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+langgraph
+langsmith
+langchain-google-genai
+langchain-groq
+langchain-chroma
+langchain-unstructured
+langchain-core
+langchain-directory
+langchain-pdf
+
+chromadb
+faiss-cpu
+
+pymupdf
+pypdf
+python-docx
+python-pptx
+unstructured
