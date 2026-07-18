@@ -78,4 +78,4 @@ if __name__ == "__main__":
     result = learning_agent.process_task("Give me 3 real-world examples of an oligopoly based on the text.")
     print("\n--- Example Mode Response ---")
     print(result)
-    # give i dont know response cause not in the documents
+    # gives "i dont know" type response cause not in the documents
