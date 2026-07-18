@@ -54,7 +54,6 @@ class LearningAgent:
     def process_task(self, task_query: str) -> str:
         """
         The Planner Agent will call this method, passing the specific task.
-        Example: "Summarize the chapter on Oligopoly market structures."
         """
         print(f"[Learning Agent] Processing task: {task_query}")
         response = self.qa_chain.invoke({"input": task_query})
