@@ -11,15 +11,32 @@ load_dotenv()
 class RAGService:
     def __init__(self):
         self.embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'}
+        )
 
         self.vector_store = Chroma(
             embedding_function=self.embeddings,
             collection_name="data_collection",
             persist_directory="./data_vector_db"
         )
+        ''' #check if the vectordb already exists or not
 
+        if os.path.exists(self.persist_directory):
+            self.vector_store = Chroma(
+            embedding_function=self.embeddings,
+            collection_name="data_collection",
+            persist_directory=self.persist_directory
+            )
+            print("--- Using existing vector DB ---")
+        else:
+            self.vector_store = Chroma(
+            embedding_function=self.embeddings,
+            collection_name="data_collection",
+            persist_directory=self.persist_directory
+            )
+            print("--- Created new vector DB ---")
+        '''
     def process_and_create_embeddings(self, folder_path: str = "./data") -> None:
         if not os.path.exists(folder_path):
             raise FileNotFoundError(f"The directory {folder_path} does not exist.")
@@ -47,7 +64,9 @@ class RAGService:
         print("--------------VECTOR DB IS READY---------------")
 
     def get_retriever(self):
-        retriever = self.vector_store.as_retriever(search_kwargs={"k": 5})
+        retriever = self.vector_store.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": 5, "fetch_k": 20})
         return retriever
 
 if __name__ == "__main__":
