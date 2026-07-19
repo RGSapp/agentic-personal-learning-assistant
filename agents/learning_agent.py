@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from langchain_groq import ChatGroq # Swap with ChatOllama if running locally
+from langchain_groq import ChatGroq 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_classic.chains import create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
