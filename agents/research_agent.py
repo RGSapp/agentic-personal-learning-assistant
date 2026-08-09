@@ -5,7 +5,7 @@ load_dotenv()
 from langchain_groq import ChatGroq
 
 from state import LearningState
-from search_service import SearchService
+from services.search_service import SearchService
 
 ACADEMIC_SIGNALS = re.compile(
     r"\b(paper|papers|arxiv|research|study|proof|algorithm|architecture|"

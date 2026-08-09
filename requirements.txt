@@ -22,3 +22,9 @@ pypdf
 python-docx
 python-pptx
 unstructured
+
+fastapi
+uvicorn
+
+streamlit
+requests

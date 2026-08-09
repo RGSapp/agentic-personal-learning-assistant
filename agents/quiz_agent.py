@@ -1,8 +1,9 @@
+from PIL import ExifTags
 import os
 from langchain_groq import ChatGroq
 
 from state import LearningState
-from rag_service import RAGService
+from services.rag_service import RAGService
 
 
 class QuizAgent:

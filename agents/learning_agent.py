@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+from state import LearningState
 from langchain_groq import ChatGroq 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_classic.chains import create_retrieval_chain
@@ -51,14 +52,24 @@ class LearningAgent:
         # combines the retriever and the document chain
         return create_retrieval_chain(self.retriever, document_chain)
 
-    def process_task(self, task_query: str) -> str:
+    def __call__(self, state: LearningState) -> dict:
         """
-        The Planner Agent will call this method, passing the specific task.
+        The workflow router will call this method, passing the state.
         """
+        task_query = state.get("query", "")
         print(f"[Learning Agent] Processing task: {task_query}")
         response = self.qa_chain.invoke({"input": task_query})
         
-        return response["answer"]
+        # If the agent couldn't find the answer, signal for research
+        answer = response["answer"]
+        needs_research = False
+        if "I cannot find information about this" in answer or "I don't know" in answer.lower():
+            needs_research = True
+            
+        return {
+            "learning_agent_output": answer,
+            "needs_research": needs_research
+        }
 
 if __name__ == "__main__":
     from services.rag_service import RAGService
