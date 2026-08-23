@@ -1,42 +1,37 @@
-# LLM and Framework
+# -- PyTorch CPU (small wheel ~150MB instead of ~2.5GB CUDA wheel) --
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+
+# Core Framework & Agents
 langgraph
 langchain
 langchain-core
 langchain-community
 langchain-text-splitters
-langsmith
-langchain-google-genai
 langchain-groq
 langchain-chroma
 langchain-huggingface
-langchain-unstructured
 langchain-classic
 langchain-tavily
 
-# Document Loaders
+# Embeddings & Vector DB
+sentence-transformers
+chromadb
+
+# Document Loaders & Processing
 pypdf
-pymupdf
-python-docx
-python-pptx
-unstructured
 docx2txt
 
-# Vector DB
-chromadb
-faiss-cpu
-
-# Search
+# Search Tools
 duckduckgo-search
+arxiv
 
-# API & Server
+# Backend API
 fastapi
 uvicorn[standard]
 python-multipart
+python-dotenv
+requests
 
 # Frontend
 streamlit
-requests
-
-# Utilities
-python-dotenv
-sentence-transformers
