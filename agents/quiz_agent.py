@@ -7,14 +7,11 @@ from services.rag_service import RAGService
 
 class QuizAgent:
     """
-    Generates practice questions on the current topic, grounded in the
-    student's own material via RAG, and grades free-form answers.
+    Generates Multiple Choice Practice Questions (MCQs) on the current topic,
+    grounded in the student's material via RAG, and grades the chosen option (A, B, C, D).
 
-    Decides generate-vs-grade off state["pending_question"] rather than
-    guessing from message content -- if a question is already waiting on
-    an answer, the next call grades it; otherwise it generates a new one.
-    Doesn't decide mastery scores itself -- that's the Memory agent's job,
-    this one just reports pass/fail for a given attempt.
+    Decides generate-vs-grade off state["pending_question"] -- if a question is
+    already waiting on an answer, the next call grades it; otherwise it generates a new one.
     """
 
     def __init__(self, rag_service: RAGService | None = None):
@@ -22,30 +19,44 @@ class QuizAgent:
         self.llm = ChatGroq(
             model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
             api_key=os.getenv("GROQ_API_KEY"),
-            temperature=0.4,
+            temperature=0.3,
         )
 
     def generate_question(self, topic: str) -> str:
         context = self.rag_service.rag_tool(topic, k=3)
         prompt = (
             f"Based on this study material about '{topic}':\n\n{context}\n\n"
-            f"Write one practice question testing understanding of this topic. "
-            f"Question only, no answer, no preamble."
+            f"Create one Multiple Choice Question (MCQ) testing understanding of this topic.\n"
+            f"Requirements:\n"
+            f"- Provide exactly 4 options labeled A), B), C), and D).\n"
+            f"- Only one option should be correct.\n"
+            f"- Do NOT reveal the correct answer or give explanations in the question text.\n"
+            f"- Format clearly:\n"
+            f"  [Question text]\n"
+            f"  A) [Option A]\n"
+            f"  B) [Option B]\n"
+            f"  C) [Option C]\n"
+            f"  D) [Option D]\n\n"
+            f"Please respond directly with the formatted MCQ question and options."
         )
-        return self.llm.invoke(prompt).content
+        return self.llm.invoke(prompt).content.strip()
 
     def grade_answer(self, topic: str, question: str, student_answer: str) -> tuple[str, str]:
         context = self.rag_service.rag_tool(topic, k=3)
         prompt = (
             f"Study material:\n{context}\n\n"
-            f"Question: {question}\n"
-            f"Student's answer: {student_answer}\n\n"
-            f"Grade this as PASS or FAIL, then give one sentence of feedback "
-            f"explaining what was right or missing. "
-            f"Format exactly as: 'PASS: ...' or 'FAIL: ...'"
+            f"Multiple Choice Question:\n{question}\n\n"
+            f"Student's Answer: {student_answer}\n\n"
+            f"Instructions:\n"
+            f"1. Evaluate if the student's answer (e.g. option letter A, B, C, D or option text) corresponds to the correct option.\n"
+            f"2. Format your response strictly starting with 'PASS:' if correct or 'FAIL:' if incorrect.\n"
+            f"3. State the correct option letter clearly and provide a brief 1-2 sentence explanation based on the study material.\n\n"
+            f"Example:\n"
+            f"PASS: Correct! Option B is right because...\n"
+            f"FAIL: Incorrect. The correct answer is Option C because..."
         )
-        result = self.llm.invoke(prompt).content
-        verdict = "passed" if result.strip().upper().startswith("PASS") else "failed"
+        result = self.llm.invoke(prompt).content.strip()
+        verdict = "passed" if result.upper().startswith("PASS") else "failed"
         return verdict, result
 
     def __call__(self, state: LearningState) -> dict:
@@ -54,7 +65,7 @@ class QuizAgent:
 
         if pending_question:
             # a question was already asked -- this turn's message is the
-            # student's attempted answer
+            # student's attempted option selection (e.g. "A", "B", "C", "D")
             student_answer = state.get("query", "")
             verdict, feedback = self.grade_answer(topic, pending_question, student_answer)
             return {
@@ -63,8 +74,8 @@ class QuizAgent:
                 "pending_question": None,   # clear it -- answered
             }
 
-        # no pending question -- generate a new one and hold it in state
-        # until the student replies
+        # no pending question -- generate a new MCQ and hold it in state
+        # until the student replies with an option
         question = self.generate_question(topic)
         return {
             "pending_question": question,
@@ -76,12 +87,12 @@ if __name__ == "__main__":
     agent = QuizAgent()
 
     # simulate a full generate -> answer -> grade cycle
-    state = {"current_topic": "Binary Search Trees", "pending_question": None}
+    state = {"current_topic": "Demand and Supply", "pending_question": None}
     result = agent(state)
-    print("Question:", result["quiz_agent_output"])
+    print("MCQ Question:\n", result["quiz_agent_output"])
 
     state.update(result)
-    state["query"] = "It's a tree where left child is smaller and right child is larger than parent."
+    state["query"] = "A"
     result = agent(state)
     print("\nVerdict:", result["last_quiz_result"])
     print("Feedback:", result["quiz_agent_output"])
