@@ -11,6 +11,7 @@ langchain-chroma
 langchain-huggingface
 langchain-unstructured
 langchain-classic
+langchain-tavily
 
 # Document Loaders
 pypdf
@@ -30,6 +31,7 @@ duckduckgo-search
 # API & Server
 fastapi
 uvicorn[standard]
+python-multipart
 
 # Frontend
 streamlit

@@ -15,7 +15,7 @@ class LearningAgent:
         self.retriever = rag_service.get_retriever()
 
         self.llm = llm or ChatGroq(
-            model="llama-3.3-70b-versatile",
+            model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
             temperature=0.1,
             max_tokens=1024,
             api_key=os.getenv("GROQ_API_KEY"))

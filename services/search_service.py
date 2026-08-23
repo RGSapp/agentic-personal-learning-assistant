@@ -15,7 +15,8 @@ class SearchService:
         self._tool = None
 
         tavily_key = os.getenv("TAVILY_API_KEY")
-        if tavily_key:
+        # Treat placeholder / empty values as "not set"
+        if tavily_key and not tavily_key.startswith("your_"):
             from langchain_tavily import TavilySearch
             self._tool = TavilySearch(max_results=5, tavily_api_key=tavily_key)
             self.provider = "tavily"
