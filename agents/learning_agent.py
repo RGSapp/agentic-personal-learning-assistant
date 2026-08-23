@@ -3,26 +3,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from state import LearningState
-from langchain_groq import ChatGroq 
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_classic.chains import create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.tools import tool
-from langchain_community.tools import DuckDuckGoSearchRun
 
-# search tool pending or this agent can be strictly based on the uploaded documents
 
 class LearningAgent:
     def __init__(self, rag_service, llm=None):
-        # initializing the retriever 
+        # initializing the retriever
         self.retriever = rag_service.get_retriever()
-        
-        self.llm = llm = ChatGroq(
-            model="openai/gpt-oss-20b",
+
+        self.llm = llm or ChatGroq(
+            model="llama-3.3-70b-versatile",
             temperature=0.1,
             max_tokens=1024,
             api_key=os.getenv("GROQ_API_KEY"))
-        
+
 
         self.system_prompt = (
             "You are an expert Learning Assistant. Your primary goal is to help the user "
@@ -59,13 +56,13 @@ class LearningAgent:
         task_query = state.get("query", "")
         print(f"[Learning Agent] Processing task: {task_query}")
         response = self.qa_chain.invoke({"input": task_query})
-        
+
         # If the agent couldn't find the answer, signal for research
         answer = response["answer"]
         needs_research = False
         if "I cannot find information about this" in answer or "I don't know" in answer.lower():
             needs_research = True
-            
+
         return {
             "learning_agent_output": answer,
             "needs_research": needs_research
@@ -76,17 +73,11 @@ if __name__ == "__main__":
 
     # initialize rag
     rag = RAGService()
-    
+
     # initialize the agent
     learning_agent = LearningAgent(rag_service=rag)
 
     # teaching mode
-    result = learning_agent.process_task("Teach me about how an oligopoly market works.")
+    result = learning_agent({"query": "Teach me about how an oligopoly market works.", "current_topic": "Economics", "pending_question": None})
     print("\n--- Teach Mode Response ---")
     print(result)
-
-    # example Mode
-    result = learning_agent.process_task("Give me 3 real-world examples of an oligopoly based on the text.")
-    print("\n--- Example Mode Response ---")
-    print(result)
-    # gives "i dont know" type response cause not in the documents

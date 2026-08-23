@@ -1,10 +1,12 @@
+import os
 import streamlit as st
 import requests
 
 # ── Constants ────────────────────────────────────────────────────────────────
-CHAT_URL     = "http://127.0.0.1:8000/chat"
-UPLOAD_URL   = "http://127.0.0.1:8000/upload"
-DOCS_URL     = "http://127.0.0.1:8000/documents"
+_BACKEND = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").rstrip("/")
+CHAT_URL     = f"{_BACKEND}/chat"
+UPLOAD_URL   = f"{_BACKEND}/upload"
+DOCS_URL     = f"{_BACKEND}/documents"
 
 ROUTE_META = {
     "learning":  {"icon": "🧠", "label": "Learning",  "color": "#6c63ff"},

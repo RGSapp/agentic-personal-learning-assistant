@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import shutil
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -141,6 +143,7 @@ async def list_documents():
 
 
 if __name__ == "__main__":
-    print("Starting FastAPI server...")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    print(f"Starting FastAPI server on 0.0.0.0:{port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)
 

@@ -1,4 +1,3 @@
-from PIL import ExifTags
 import os
 from langchain_groq import ChatGroq
 

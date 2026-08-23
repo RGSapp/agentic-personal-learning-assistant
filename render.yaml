@@ -1,0 +1,33 @@
+services:
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  - type: web
+    name: learning-assistant-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false          # set manually in the Render dashboard
+      - key: TAVILY_API_KEY
+        sync: false          # optional — DuckDuckGo is the fallback
+      - key: PYTHON_VERSION
+        value: "3.11"
+
+  # ── Streamlit Frontend ───────────────────────────────────────────────────────
+  - type: web
+    name: learning-assistant-ui
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install streamlit requests python-dotenv
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: learning-assistant-api
+          property: host
+      - key: PYTHON_VERSION
+        value: "3.11"

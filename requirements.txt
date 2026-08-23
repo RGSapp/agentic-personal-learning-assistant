@@ -1,30 +1,40 @@
-#LLM and Framework
-
+# LLM and Framework
 langgraph
 langchain
 langchain-core
 langchain-community
 langchain-text-splitters
-langgraph
 langsmith
 langchain-google-genai
 langchain-groq
 langchain-chroma
+langchain-huggingface
 langchain-unstructured
-langchain-core
+langchain-classic
+
+# Document Loaders
 pypdf
-
-chromadb
-faiss-cpu
-
 pymupdf
-pypdf
 python-docx
 python-pptx
 unstructured
+docx2txt
 
+# Vector DB
+chromadb
+faiss-cpu
+
+# Search
+duckduckgo-search
+
+# API & Server
 fastapi
-uvicorn
+uvicorn[standard]
 
+# Frontend
 streamlit
 requests
+
+# Utilities
+python-dotenv
+sentence-transformers
