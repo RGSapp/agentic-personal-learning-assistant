@@ -6,13 +6,9 @@ import requests
 _raw_backend = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").strip().rstrip("/")
 if not _raw_backend.startswith(("http://", "https://")):
     scheme = "http://" if ("localhost" in _raw_backend or "127.0.0.1" in _raw_backend) else "https://"
-    _BACKEND = f"{scheme}{_raw_backend}"
+    DEFAULT_BACKEND = f"{scheme}{_raw_backend}"
 else:
-    _BACKEND = _raw_backend
-
-CHAT_URL     = f"{_BACKEND}/chat"
-UPLOAD_URL   = f"{_BACKEND}/upload"
-DOCS_URL     = f"{_BACKEND}/documents"
+    DEFAULT_BACKEND = _raw_backend
 
 ROUTE_META = {
     "learning":  {"icon": "🧠", "label": "Learning",  "color": "#6c63ff"},
@@ -28,6 +24,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -206,11 +203,28 @@ if "indexed_docs" not in st.session_state:
     st.session_state.indexed_docs = []
 if "docs_loaded" not in st.session_state:
     st.session_state.docs_loaded = False
+if "backend_url" not in st.session_state:
+    st.session_state.backend_url = DEFAULT_BACKEND
+
+
+def get_backend_urls():
+    url = st.session_state.backend_url.strip().rstrip("/")
+    if not url.startswith(("http://", "https://")):
+        scheme = "http://" if ("localhost" in url or "127.0.0.1" in url) else "https://"
+        url = f"{scheme}{url}"
+    return {
+        "base": url,
+        "chat": f"{url}/chat",
+        "upload": f"{url}/upload",
+        "docs": f"{url}/documents",
+        "health": f"{url}/health"
+    }
 
 
 def fetch_indexed_docs():
+    urls = get_backend_urls()
     try:
-        r = requests.get(DOCS_URL, timeout=5)
+        r = requests.get(urls["docs"], timeout=5)
         if r.status_code == 200:
             return r.json()
     except Exception:
@@ -243,6 +257,33 @@ with st.sidebar:
 
     st.divider()
 
+    # ── Backend Connection Status & Config ────────────────────────────────────
+    st.markdown('<div class="sidebar-section-title">🌐 Backend Connection</div>', unsafe_allow_html=True)
+    custom_backend = st.text_input(
+        "API Base URL",
+        value=st.session_state.backend_url,
+        help="Override the backend URL if running on a custom domain or Render service.",
+        key="backend_url_input",
+    )
+    if custom_backend != st.session_state.backend_url:
+        st.session_state.backend_url = custom_backend
+        st.session_state.docs_loaded = False
+        st.rerun()
+
+    urls = get_backend_urls()
+
+    # Health Indicator
+    try:
+        h = requests.get(urls["health"], timeout=4)
+        if h.status_code == 200:
+            st.markdown(f'<span style="color:#1db954;font-weight:600;">🟢 Backend Online</span> <span style="font-size:0.8em;color:#a0aec0;">({urls["base"]})</span>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<span style="color:#f5a623;font-weight:600;">⚠️ HTTP {h.status_code}</span> <span style="font-size:0.8em;color:#a0aec0;">({urls["base"]})</span>', unsafe_allow_html=True)
+    except Exception as e:
+        st.markdown(f'<span style="color:#ff4d4f;font-weight:600;">🔴 Backend Unreachable</span><br><span style="font-size:0.75em;color:#a0aec0;">Target: `{urls["base"]}`</span>', unsafe_allow_html=True)
+
+    st.divider()
+
     # ── Upload Section ────────────────────────────────────────────────────────
     st.markdown('<div class="sidebar-section-title">📂 Upload Documents</div>', unsafe_allow_html=True)
     st.caption("Supports PDF, DOCX, TXT · Multiple files allowed")
@@ -263,15 +304,15 @@ with st.sidebar:
                     for f in uploaded_files
                 ]
                 try:
-                    resp = requests.post(UPLOAD_URL, files=file_tuples, timeout=120)
+                    resp = requests.post(urls["upload"], files=file_tuples, timeout=180)
                     if resp.status_code == 200:
                         data = resp.json()
                         st.success(data["message"])
                         st.session_state.indexed_docs = fetch_indexed_docs()
                     else:
                         st.error(f"Upload failed ({resp.status_code}): {resp.text}")
-                except requests.exceptions.ConnectionError:
-                    st.error("Cannot reach backend. Is the FastAPI server running?")
+                except requests.exceptions.RequestException as err:
+                    st.error(f"❌ Cannot reach backend at `{urls['upload']}`. Error: {err}")
 
     st.divider()
 
@@ -346,9 +387,10 @@ if prompt := st.chat_input("Ask a question, request a quiz, or explore a topic�
         "pending_question": st.session_state.pending_question,
     }
 
+    urls = get_backend_urls()
     with st.spinner("Thinking…"):
         try:
-            response = requests.post(CHAT_URL, json=payload, timeout=120)
+            response = requests.post(urls["chat"], json=payload, timeout=180)
 
             if response.status_code == 200:
                 data = response.json()
@@ -374,6 +416,6 @@ if prompt := st.chat_input("Ask a question, request a quiz, or explore a topic�
             else:
                 st.error(f"API error {response.status_code}: {response.text}")
 
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-            st.error(f"❌ Cannot reach backend at `{_BACKEND}`. Please make sure the FastAPI server is running.")
+        except requests.exceptions.RequestException as err:
+            st.error(f"❌ Cannot reach backend at `{urls['chat']}`. Error: {err}")
 

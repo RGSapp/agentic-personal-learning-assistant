@@ -28,6 +28,12 @@ app.add_middleware(
 SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".docx"}
 
 
+@app.get("/")
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "Agentic Personal Learning Assistant API is running"}
+
+
 class ChatRequest(BaseModel):
     query: str
     current_topic: str = "General"
