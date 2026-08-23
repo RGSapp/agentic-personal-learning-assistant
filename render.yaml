@@ -30,6 +30,6 @@ services:
         fromService:
           type: web
           name: learning-assistant-api
-          property: host
+          property: url
       - key: PYTHON_VERSION
         value: "3.11"

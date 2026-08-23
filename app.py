@@ -348,7 +348,7 @@ if prompt := st.chat_input("Ask a question, request a quiz, or explore a topic‚Ä
 
     with st.spinner("Thinking‚Ä¶"):
         try:
-            response = requests.post(CHAT_URL, json=payload, timeout=60)
+            response = requests.post(CHAT_URL, json=payload, timeout=120)
 
             if response.status_code == 200:
                 data = response.json()
@@ -374,6 +374,6 @@ if prompt := st.chat_input("Ask a question, request a quiz, or explore a topic‚Ä
             else:
                 st.error(f"API error {response.status_code}: {response.text}")
 
-        except requests.exceptions.ConnectionError:
-            st.error("‚ùå Cannot reach backend. Make sure FastAPI is running on http://127.0.0.1:8000")
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            st.error(f"‚ùå Cannot reach backend at `{_BACKEND}`. Please make sure the FastAPI server is running.")
 
