@@ -291,33 +291,6 @@ with st.sidebar:
 
     st.divider()
 
-    # ── Backend Connection Status & Config ────────────────────────────────────
-    st.markdown('<div class="sidebar-section-title">🌐 Backend Connection</div>', unsafe_allow_html=True)
-    custom_backend = st.text_input(
-        "API Base URL",
-        value=st.session_state.backend_url,
-        help="Override the backend URL if running on a custom domain or Render service.",
-        key="backend_url_input",
-    )
-    if custom_backend != st.session_state.backend_url:
-        st.session_state.backend_url = custom_backend
-        st.session_state.docs_loaded = False
-        st.rerun()
-
-    urls = get_backend_urls()
-
-    # Health Indicator
-    try:
-        h = requests.get(urls["health"], timeout=4)
-        if h.status_code == 200:
-            st.markdown(f'<span style="color:#1db954;font-weight:600;">🟢 Backend Online</span> <span style="font-size:0.8em;color:#a0aec0;">({urls["base"]})</span>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<span style="color:#f5a623;font-weight:600;">⚠️ HTTP {h.status_code}</span> <span style="font-size:0.8em;color:#a0aec0;">({urls["base"]})</span>', unsafe_allow_html=True)
-    except Exception as e:
-        st.markdown(f'<span style="color:#ff4d4f;font-weight:600;">🔴 Backend Unreachable</span><br><span style="font-size:0.75em;color:#a0aec0;">Target: `{urls["base"]}`</span>', unsafe_allow_html=True)
-
-    st.divider()
-
     # ── Upload Section ────────────────────────────────────────────────────────
     st.markdown('<div class="sidebar-section-title">📂 Upload Documents</div>', unsafe_allow_html=True)
     st.caption("Supports PDF, DOCX, TXT · Multiple files allowed")
