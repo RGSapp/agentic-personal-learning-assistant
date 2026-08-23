@@ -4,7 +4,7 @@ from typing import List
 
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader, TextLoader, Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_chroma import Chroma
 
 load_dotenv()
@@ -12,9 +12,8 @@ load_dotenv()
 
 class RAGService:
     def __init__(self):
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={'device': 'cpu'}
+        self.embeddings = FastEmbedEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
 
         self.vector_store = Chroma(

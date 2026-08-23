@@ -1,7 +1,3 @@
-# -- PyTorch CPU (small wheel ~150MB instead of ~2.5GB CUDA wheel) --
---extra-index-url https://download.pytorch.org/whl/cpu
-torch
-
 # Core Framework & Agents
 langgraph
 langchain
@@ -10,12 +6,10 @@ langchain-community
 langchain-text-splitters
 langchain-groq
 langchain-chroma
-langchain-huggingface
-langchain-classic
 langchain-tavily
 
 # Embeddings & Vector DB
-sentence-transformers
+fastembed
 chromadb
 
 # Document Loaders & Processing
