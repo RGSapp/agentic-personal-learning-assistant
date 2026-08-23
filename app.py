@@ -305,6 +305,7 @@ with st.sidebar:
 
     if st.button("⬆️  Ingest Documents", use_container_width=True, disabled=not uploaded_files):
         if uploaded_files:
+            urls = get_backend_urls()
             with st.spinner("Embedding documents…"):
                 file_tuples = [
                     ("files", (f.name, f.getvalue(), f.type))
