@@ -2,13 +2,47 @@ import os
 import streamlit as st
 import requests
 
-# ── Constants ────────────────────────────────────────────────────────────────
-_raw_backend = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").strip().rstrip("/")
-if not _raw_backend.startswith(("http://", "https://")):
-    scheme = "http://" if ("localhost" in _raw_backend or "127.0.0.1" in _raw_backend) else "https://"
-    DEFAULT_BACKEND = f"{scheme}{_raw_backend}"
-else:
-    DEFAULT_BACKEND = _raw_backend
+def resolve_default_backend_url() -> str:
+    env_backend = os.getenv("BACKEND_URL", "").strip().rstrip("/")
+    candidates = []
+
+    # 1. Environment variable
+    if env_backend:
+        if "onrender.com" in env_backend:
+            scheme = "https://" if not env_backend.startswith(("http://", "https://")) else ""
+            candidates.append(f"{scheme}{env_backend}")
+        elif env_backend.startswith(("http://", "https://")):
+            candidates.append(env_backend)
+        else:
+            candidates.append(f"https://{env_backend}.onrender.com")
+            candidates.append(f"https://{env_backend}")
+
+    # 2. Render Inferred URL from Streamlit container's public hostname
+    render_ext = os.getenv("RENDER_EXTERNAL_URL", "") or os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
+    if render_ext:
+        if not render_ext.startswith(("http://", "https://")):
+            render_ext = f"https://{render_ext}"
+        inferred = render_ext.replace("learning-assistant-ui", "learning-assistant-api").rstrip("/")
+        if inferred not in candidates:
+            candidates.append(inferred)
+
+    # 3. Private network & localhost fallbacks
+    candidates.append("http://learning-assistant-api:10000")
+    candidates.append("http://127.0.0.1:8000")
+
+    # Fast probe to select the first reachable candidate
+    for candidate in candidates:
+        try:
+            r = requests.get(f"{candidate}/health", timeout=3)
+            if r.status_code == 200:
+                return candidate
+        except Exception:
+            continue
+
+    return candidates[0] if candidates else "http://127.0.0.1:8000"
+
+
+DEFAULT_BACKEND = resolve_default_backend_url()
 
 ROUTE_META = {
     "learning":  {"icon": "🧠", "label": "Learning",  "color": "#6c63ff"},
