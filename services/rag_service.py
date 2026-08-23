@@ -87,6 +87,34 @@ class RAGService:
         self.vector_store.add_documents(chunks)
         print("--------------VECTOR DB IS READY---------------")
 
+    def clear_all_documents(self) -> bool:
+        """Clear all collection items from Chroma vector store and data folder."""
+        try:
+            # Delete collection or reset Chroma store
+            try:
+                self.vector_store.delete_collection()
+            except Exception:
+                pass
+            self.vector_store = Chroma(
+                embedding_function=self.embeddings,
+                collection_name="data_collection",
+                persist_directory="./data_vector_db"
+            )
+            # Remove local files in ./data if present
+            if os.path.exists("./data"):
+                for filename in os.listdir("./data"):
+                    filepath = os.path.join("./data", filename)
+                    if os.path.isfile(filepath) and not filename.endswith(".gitkeep"):
+                        try:
+                            os.remove(filepath)
+                        except Exception:
+                            pass
+            print("[RAGService] Cleared all documents and vector DB.")
+            return True
+        except Exception as e:
+            print(f"[RAGService] Error clearing documents: {e}")
+            return False
+
     def get_document_list(self) -> List[str]:
         """
         Return a sorted list of unique source document basenames

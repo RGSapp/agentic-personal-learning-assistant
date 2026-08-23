@@ -1,11 +1,13 @@
-﻿.env
+.env
 .venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-data/
-data_vector_db/
+data/*
+!data/.gitkeep
+data_vector_db/*
+!data_vector_db/.gitkeep
 *.egg-info/
 dist/
 build/

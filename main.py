@@ -148,6 +148,19 @@ async def list_documents():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.delete("/documents")
+async def delete_all_documents():
+    """Clear all indexed documents and reset the vector store."""
+    try:
+        success = rag_service.clear_all_documents()
+        if success:
+            return {"message": "All indexed documents cleared successfully."}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to clear documents.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     print(f"Starting FastAPI server on 0.0.0.0:{port}...")

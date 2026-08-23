@@ -331,8 +331,24 @@ with st.sidebar:
         st.session_state.indexed_docs = fetch_indexed_docs()
         st.session_state.docs_loaded = True
 
-    if st.button("🔄 Refresh", use_container_width=True):
-        st.session_state.indexed_docs = fetch_indexed_docs()
+    col_ref, col_clr = st.columns(2)
+    with col_ref:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.session_state.indexed_docs = fetch_indexed_docs()
+    with col_clr:
+        if st.button("🗑️ Clear Docs", use_container_width=True):
+            try:
+                urls = get_backend_urls()
+                r = requests.delete(urls["docs"], timeout=10)
+                if r.status_code == 200:
+                    st.toast("All indexed documents cleared!", icon="✅")
+                    st.session_state.indexed_docs = []
+                    st.session_state.docs_loaded = False
+                    st.rerun()
+                else:
+                    st.error(f"Failed to clear docs: {r.text}")
+            except Exception as err:
+                st.error(f"Error: {err}")
 
     docs = st.session_state.indexed_docs
     if docs:
