@@ -3,7 +3,13 @@ import streamlit as st
 import requests
 
 # ── Constants ────────────────────────────────────────────────────────────────
-_BACKEND = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").rstrip("/")
+_raw_backend = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").strip().rstrip("/")
+if not _raw_backend.startswith(("http://", "https://")):
+    scheme = "http://" if ("localhost" in _raw_backend or "127.0.0.1" in _raw_backend) else "https://"
+    _BACKEND = f"{scheme}{_raw_backend}"
+else:
+    _BACKEND = _raw_backend
+
 CHAT_URL     = f"{_BACKEND}/chat"
 UPLOAD_URL   = f"{_BACKEND}/upload"
 DOCS_URL     = f"{_BACKEND}/documents"
